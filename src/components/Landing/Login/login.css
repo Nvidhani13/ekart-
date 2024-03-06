@@ -1,0 +1,22 @@
+.login{
+   
+
+}
+.logo-image{
+   height:15vh;
+   width: 10vw;
+}
+.login-box{
+    justify-content: center;
+    display:flex;
+    
+    
+}
+.login-box form{
+    border: 1px solid #ddd; /* Add a 1px solid border with a light gray color */
+  padding: 50px; /* Add some padding for better visual appearance */
+  margin: 20px; 
+  border-radius: 10px;
+  width: 50vw;
+
+}

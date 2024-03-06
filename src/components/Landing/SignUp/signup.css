@@ -1,0 +1,18 @@
+.signup-box{
+    justify-content: center;
+    display: flex;
+    
+    
+}
+.signup-box form{
+    border: 1px solid #ddd; /* Add a 1px solid border with a light gray color */
+  padding: 30px; /* Add some padding for better visual appearance */
+  margin: 0px; 
+  border-radius: 10px;
+  width: 50vw;
+  
+ 
+}
+.form-group{
+
+}
