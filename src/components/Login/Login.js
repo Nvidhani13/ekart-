@@ -1,5 +1,6 @@
 import React from 'react';
 import './login.css';
+import { Link } from 'react-router-dom';
 
 function Login() {
   return (
@@ -24,7 +25,8 @@ function Login() {
       </div>
 
       <div className="signup-section">
-        <p>New to eKart? <a href="#" className="signup-link">Sign up</a></p>
+          
+        <p>New to eKart? <Link to='/signup'>Sign up</Link></p>
       </div>
     </div>
   );

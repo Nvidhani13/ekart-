@@ -1,0 +1,10 @@
+.navbar-image {
+    width: 90%;
+    height: 10vh;
+}
+
+.navbar {
+    display: flex;
+}
+
+
