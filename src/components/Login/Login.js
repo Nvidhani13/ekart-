@@ -1,35 +1,157 @@
-import React from 'react';
-import './login.css';
-import { Link } from 'react-router-dom';
+import * as React from 'react';
+import Avatar from '@mui/material/Avatar';
+import Button from '@mui/material/Button';
+import CssBaseline from '@mui/material/CssBaseline';
+import TextField from '@mui/material/TextField';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
+import Link from '@mui/material/Link';
+import Grid from '@mui/material/Grid';
+import Box from '@mui/material/Box';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import Typography from '@mui/material/Typography';
+import Container from '@mui/material/Container';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import Url from '../../Url';
+import { loggedIn,loggedOut } from '../../redux/userDetails/userSlice';
+import { previousCart } from '../../redux/cartinfo/cartSlice';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux'
+// function Copyright(props) {
+//   return (
+//     <Typography variant="body2" color="text.secondary" align="center" {...props}>
+//       {'Copyright © '}
+//       <Link color="inherit" href="https://mui.com/">
+//         Your Website
+//       </Link>{' '}
+//       {new Date().getFullYear()}
+//       {'.'}
+//     </Typography>
+//   );
+// }
 
-function Login() {
-  return (
-    <div className='login'>
-      <div className='login-box'>
-        <form>
-          <div className="form-group">
-            <label htmlFor="exampleInputEmail1">Email address</label>
-            <input type="email" className="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email" />
-            <small id="emailHelp" className="form-text text-muted">We'll never share your email with anyone else.</small>
-          </div>
-          <div className="form-group">
-            <label htmlFor="exampleInputPassword1">Password</label>
-            <input type="password" className="form-control" id="exampleInputPassword1" placeholder="Password" />
-          </div>
-          <div className="form-group form-check">
-            <input type="checkbox" className="form-check-input" id="exampleCheck1" />
-            <label className="form-check-label" htmlFor="exampleCheck1">Keep me signed in.</label>
-          </div>
-          <button type="submit" className="btn btn-primary">Sign in</button>
-        </form>
-      </div>
+// TODO remove, this demo shouldn't need to reset the theme.
 
-      <div className="signup-section">
+const defaultTheme = createTheme();
+
+export default function SignIn() {
+  const dispatch = useDispatch()
+  const navigate=useNavigate()
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    console.log(formData.get('email'))
+    try {
+      
+      const response = await fetch(Url+'/login/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+
+        body: JSON.stringify({
           
-        <p>New to eKart? <Link to='/signup'>Sign up</Link></p>
-      </div>
-    </div>
+          email: formData.get('email'),
+          password: formData.get('password'),
+        }),
+      });
+      if(response.status==401 ){
+        alert("User not verify ,verify your email")
+      }
+      if (response.ok) {
+        // Redirect to login page upon successful registration
+        let data=await response.json()
+        console.log(data,"this is data ")
+        if(data.msg=='Admin logged in successfully'){
+          navigate('/admin')
+        dispatch(loggedIn({username:data.user,email:formData.get('email'),admin:true}))
+
+        }
+        else{
+           console.log(data,"this is data i am gettinghhhhh")
+           dispatch(loggedIn({username:data.user,email:formData.get('email'),admin:false}))
+           console.log(data.cart_total," this is cart total")
+           dispatch(previousCart({noOfItems:data.cart_total}))
+          navigate('/')
+        }
+        
+      } else {
+        // Log the error if the request fails
+       
+        console.error('Registration failed:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error during registration:', error.message);
+    }
+  };
+
+  return (
+    <ThemeProvider theme={defaultTheme}>
+      <Container component="main" maxWidth="xs">
+        <CssBaseline />
+        <Box
+          sx={{
+            marginTop: 8,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+          <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+            <LockOutlinedIcon />
+          </Avatar>
+          <Typography component="h1" variant="h5">
+            Sign in
+          </Typography>
+          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="email"
+              label="Email Address"
+              name="email"
+              autoComplete="email"
+              autoFocus
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              name="password"
+              label="Password"
+              type="password"
+              id="password"
+              autoComplete="current-password"
+            />
+            <FormControlLabel
+              control={<Checkbox value="remember" color="primary" />}
+              label="Remember me"
+            />
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+            >
+              Sign In
+            </Button>
+            <Grid container>
+              <Grid item xs>
+                <Link href="#" variant="body2">
+                  Forgot password?
+                </Link>
+              </Grid>
+              <Grid item>
+                <Link href='/reg' variant="body2">
+                  {"Don't have an account? Sign Up"}
+                </Link>
+              </Grid>
+            </Grid>
+          </Box>
+        </Box>
+        
+      </Container>
+    </ThemeProvider>
   );
 }
-
-export default Login;

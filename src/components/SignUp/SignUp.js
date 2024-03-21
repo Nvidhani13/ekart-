@@ -1,81 +1,194 @@
-import React, { useState } from 'react';
-import './signup.css';
+import * as React from 'react';
+import Avatar from '@mui/material/Avatar';
+import CssBaseline from '@mui/material/CssBaseline';
+import TextField from '@mui/material/TextField';
+import Link from '@mui/material/Link';
+import Grid from '@mui/material/Grid';
+import Box from '@mui/material/Box';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import Typography from '@mui/material/Typography';
+import Container from '@mui/material/Container';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { useState } from 'react';
+import Url from '../../Url.js';
+import { useNavigate } from 'react-router-dom';
+import LoadingButton from '@mui/lab/LoadingButton';
+const defaultTheme = createTheme();
 
-function SignUp() {
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    otp: '',
-  });
+export default function SignUp() {
+  const [passwordError,setPasswordError]=useState([false,""])
+  const [userExist,setUserExist]=useState(false)
+  const [formData,setformData]=useState({})
+  const navigate=useNavigate()
+  const handleSubmit = async(event) => {
+    event.preventDefault();
 
-  const [otpSent, setOtpSent] = useState(false);
-  const [registered, setRegistered] = useState(false);
+    const data = new FormData(event.currentTarget);
+    console.log(data)
+    let username=data.get("userName")
+    let email= data.get('email')
+    let password= data.get('password')
+    let confirmPassword=data.get('confirmpassword')
+    const passwordRegex = /^((?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*\W)\w.{6,18}\w)/;
+    
+    if (!passwordRegex.test(password)) {
+      
+      setPasswordError([true,"password do not meet requirements.password must contain atleast one Upper case one lower case one digit and one special characte"])
+      return;
+    }
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
+    // Check if passwords match
+    if (password !== confirmPassword) {
+      
+      setPasswordError([true,"password do not match"])
+      return;
+    }
+    setPasswordError([false,""])
+    setformData({
+      userName:data.get('userName'),
+      email:data.get('email'),
+      password:data.get('password')
+      
+    })
+    try {
+      
+      const response = await fetch(Url+'/reg/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
 
-  const handleSendOtp = () => {
-    // Add logic to send OTP to the user's email
-    // For example, you can make an API call to send an OTP
+        body: JSON.stringify({
+          name:"nikhil",
+          username: data.get('userName'),
+          email: data.get('email'),
+          password: data.get('password'),
+        }),
+      });
 
-    // For demonstration purposes, let's set otpSent to true
-    setOtpSent(true);
-  };
+      if (response.ok) {
+        // Redirect to login page upon successful registration
+        let data=await response.json()
+        if(data.msg==='user already exists'){
+                 setUserExist(true)
+        }
+        else{navigate('/login');}
+        
+      } else {
+        // Log the error if the request fails
+        console.error('Registration failed:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error during registration:', error.message);
+    }
 
-  const handleRegister = () => {
-    // Add logic to register the user with the provided data
-    // For example, you can make an API call to register the user
-
-    // For demonstration purposes, let's set registered to true
-    setRegistered(true);
   };
 
   return (
-    <div className='signup'>
-      <div className='signup-box'>
-        <form>
-          <div className="form-group">
-            <label htmlFor="username">Username</label>
-            <input type="text" className="form-control" id="username" name="username" onChange={handleChange} value={formData.username} placeholder="Enter username" />
-          </div>
-          <div className="form-group">
-            <label htmlFor="email">Email address</label>
-            <input type="email" className="form-control" id="email" name="email" onChange={handleChange} value={formData.email} placeholder="Enter email" />
-          </div>
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input type="password" className="form-control" id="password" name="password" onChange={handleChange} value={formData.password} placeholder="Enter password" />
-          </div>
-          <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm Password</label>
-            <input type="password" className="form-control" id="confirmPassword" name="confirmPassword" onChange={handleChange} value={formData.confirmPassword} placeholder="Confirm password" />
-          </div>
-
-          {!otpSent ? (
-            <button type="button" className="btn btn-primary" onClick={handleSendOtp}>Send OTP</button>
-          ) : (
-            <>
-              <div className="form-group">
-                <label htmlFor="otp">Enter OTP</label>
-                <input type="text" className="form-control" id="otp" name="otp" onChange={handleChange} value={formData.otp} placeholder="Enter OTP" />
-                <small className="form-text text-muted">OTP was sent to your email.</small>
-              </div>
-              <button type="button" className={`btn btn-primary ${formData.otp.length === 4 ? '' : 'disabled'}`} onClick={handleRegister}>Register</button>
-            </>
-          )}
-        </form>
+    <ThemeProvider theme={defaultTheme}>
+      <Container component="main" maxWidth="xs">
+        <CssBaseline />
+        <Box
+          sx={{
+            marginTop: 8,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+          <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+            <LockOutlinedIcon />
+          </Avatar>
+          <Typography component="h1" variant="h5">
+            Sign up
+          </Typography>
+          <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} >
+                <TextField
+                  autoComplete="given-name"
+                  name="userName"
+                  required
+                  fullWidth
+                  id="userName"
+                  label="User Name"
+                  autoFocus
+                  
+                />
+              </Grid>
+             
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  id="email"
+                  label="Email Address"
+                  error={userExist}
+                  name="email"
+                  autoComplete="email"
+                  helperText={
+                    userExist
+                      ? "This user already exist"
+                      : ""
+                  }
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  error={passwordError[0]}
+                  name="password"
+                  label="Password"
+                  type="password"
+                  id="password"
+                  autoComplete="new-password"
+                  helperText={
+                    passwordError[0]
+                      ? passwordError[1]
+                      : ""
+                  }
+                />
+               
+              </Grid>
+              <Grid item xs={12}>
+              <TextField
+                  required
+                  error={passwordError[0]}
+                  fullWidth
+                  name="confirmpassword"
+                  label="Confirm Password"
+                  type="password"
+                  id="confirmpassword"
+                  autoComplete="new-password"
+                  helperText={
+                    passwordError[0]
+                      ? passwordError[1]
+                      : ""
+                  }
+                />
+                
+              </Grid>
+            </Grid>
+            <LoadingButton
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+            >
+              Sign Up
+            </LoadingButton>
+            <Grid container justifyContent="flex-end">
+              <Grid item>
+                <Link  href='/login' variant="body2">
+                  Already have an account? Sign in
+                </Link>
+              </Grid>
+            </Grid>
+          </Box>
+        </Box>
         
-      </div>
-      <div className="signup-section">
-        <p>New to eKart? <a href="#" className="signup-link">Login</a></p>
-      </div>
-      {registered && <p>User successfully registered!</p>}
-    </div>
+      </Container>
+    </ThemeProvider>
   );
 }
-
-export default SignUp;
