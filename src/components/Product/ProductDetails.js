@@ -14,31 +14,27 @@ import AddIcon from '@mui/icons-material/Add';
 import { useSelector } from 'react-redux';
 import { addToCart } from '../../redux/cartinfo/cartSlice';
 import { useDispatch } from 'react-redux';
+import { updateToken } from '../../redux/userDetails/userSlice';
+import axios from 'axios';
 function ProductDetails(props) {
     
     const { id } = useParams();
     const [quantity, setQuantity] = useState(1);
     const username= useSelector(state=>state.user.username)//any time action is dispatched this will run do comparison with prev value and force
     //to re render if strict comparision says false 
+    const {access,refresh}=useSelector(state=>state.user.token)
+    console.log(access,"This is acessToken")
     const dispatch=useDispatch()
-    const [product, setproduct] = useState({
-        // actual_price: 4899, available_number: 45, brand_name: "Red tape",
-        // desc: "ultra light weight red taps shoes for men",
-        // discounted_price: 1299,
-        // id: 4,
-        // image: "/media/images/red_tape_NcXEiW6.jpg",
-        // item_name: "Red tape sports shoes",
-    })
+    const [product, setproduct] = useState({})
 
     const fetchProductDetails = async () => {
         try {
             const response = await fetch(Url + "/show/", {
                 method: 'GET',
                 headers: {
-                    //'ngrok-skip-browser-warning':'567key',
-                    // 'Content-Type': 'application/json',
-                    //headers['ngrok-skip-browser-warning'] = 'skip-browser-warning';
+
                     'ngrok-skip-browser-warning': 'skip-browser-warning',
+                    
                 }
             });
             //const data=await response.json()
@@ -53,42 +49,71 @@ function ProductDetails(props) {
             console.error("Error fetching product details: ", error);
         }
     }
-    const handleAddToCart = async () => {
-       let Total=quantity;
-         console.log(username)
-         console.log(`${Url}/cart/${username}/`," thsi is username ")
-           for(let i  =0;i<quantity;i++){ 
-            try {
-                const response = await fetch(`${Url}/cart/${username}/`, {
-                method: 'POST',
+    
+
+const handleAddToCart = async () => {
+    let Total = quantity;
+    console.log(username);
+    console.log(`${Url}/cart/${username}/`, " this is username ");
+
+    for (let i = 0; i < quantity; i++) {
+        try {
+            const response = await axios.post(`${Url}/cart/${username}/`, {
+                item_name: product.item_name
+            }, { 
                 headers: {
                     'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ item_name: product.item_name }),
+                    'Authorization': `Bearer ${access}`
+                }
             });
-            console.log(response,"this is response")
-            if(response.ok){
-                setQuantity(quantity-1)
-               dispatch(addToCart())
-            }
-           
-            if(response.status==400){
-                //!this alert is not workin
-                const item_added=Total-quantity
-                alert(`${Total} ${product.item_name} not available ,${item_added} ${product.item_name} added`)
-                return
-            }
-            
-            }
-            catch (error) {
-                console.log(error,"this is error ")
-                
-                return
-            }
-            //dispatch action here 
 
-        } 
+            if (response.status === 200) {
+                setQuantity(quantity - 1);
+                dispatch(addToCart());
+            }
+
+            if (response.status === 400) {
+                const item_added = Total - quantity;
+                alert(`${Total} ${product.item_name} not available, ${item_added} ${product.item_name} added`);
+                return;
+            }
+        } catch (error) {
+            console.log(error,"this is error ")
+            if (error.response) {
+                if (error.response.data.detail=== 'Access token expired') {
+                    try{
+                        const response = await axios.post(`${Url}/refresh-token/`, {
+                            refresh_token: refresh
+                        }, {
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        console.log(response.data)
+                        console.log(access,"this is access token prev")
+                        console.log(response.data.access,"Response data to access ")
+                        dispatch(updateToken({accessToken:response.data.access_token.access,refreshToken:response.data.access_token.refresh}))
+                        console.log(access,"this is access token")
+                    }
+                    catch(error){
+
+                    }
+                   
+            } else {
+                
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again later.');
+                }
+            } else {
+                console.error('Error:', error.message);
+                alert('An error occurred. Please try again later.');
+            }
+            return;
+        }
+        // dispatch action here
     }
+};
+
 
     useEffect(() => {
         fetchProductDetails();
@@ -123,13 +148,14 @@ function ProductDetails(props) {
                     <Typography gutterBottom>{product.desc}</Typography>
                     <Rating name="read-only" value={4} readOnly />
                     <p>(1000+ reviews)</p>
-
+ 
                 
                  
                     <Box sx={{
                         display:'flex',
                         flexDirection:"column"
                     }}>
+                        
                         <Box sx={{ display: 'flex', alignItems: 'center',position:'relative',left:'20%' }}>
                         <IconButton onClick={handleDecreaseQuantity}>
                             <RemoveIcon />

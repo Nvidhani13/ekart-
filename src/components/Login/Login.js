@@ -55,6 +55,7 @@ export default function SignIn() {
           password: formData.get('password'),
         }),
       });
+      console.log(response,"this is response in login ")
       if(response.status==401 ){
         alert("User not verify ,verify your email")
       }
@@ -63,16 +64,16 @@ export default function SignIn() {
         let data=await response.json()
         console.log(data,"this is data ")
         if(data.msg=='Admin logged in successfully'){
-          navigate('/admin')
-        dispatch(loggedIn({username:data.user,email:formData.get('email'),admin:true}))
+        navigate('/admin')
+        dispatch(loggedIn({username:data.user,email:formData.get('email'),admin:true,accessToken:data.token.access,refreshToken:data.token.refresh}))
 
         }
         else{
            console.log(data,"this is data i am gettinghhhhh")
-           dispatch(loggedIn({username:data.user,email:formData.get('email'),admin:false}))
+           dispatch(loggedIn({username:data.user,email:formData.get('email'),admin:false,accessToken:data.token.access,refreshToken:data.token.refresh}))
            console.log(data.cart_total," this is cart total")
            dispatch(previousCart({noOfItems:data.cart_total}))
-          navigate('/')
+           navigate('/')
         }
         
       } else {
